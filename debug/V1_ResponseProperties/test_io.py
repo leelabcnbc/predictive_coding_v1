@@ -52,6 +52,32 @@ def test_circular_grating_and_process_image():
             assert np.allclose(im_off, im_off_ref)
 
 
+def test_image_contextual_surround():
+    ref_mat = loadmat(os.path.join(dir_dictionary['reference_V1_ResponseProperties'],
+                                   'test_image_contextual_surround.mat'))
+
+    grating_wavel = 6
+    contrast = 0.25
+    diams = np.arange(3, 32, 4)
+    phase = 0
+
+    for j in range(2):
+        for i, diam in enumerate(diams):
+            if j == 0:
+                im_this = io.image_contextual_surround(diam, diams.max() - diam / 2, 0, grating_wavel, grating_wavel, 0,
+                                                       phase, 0, contrast, 0)
+            else:
+                assert j == 1
+                im_this = io.image_contextual_surround(0, diam / 2, diams.max() - diam / 2, grating_wavel,
+                                                       grating_wavel, 0, 0, phase, 0, contrast)
+
+            im_this_ref = ref_mat['I_all'][j, i]
+            assert im_this.shape == im_this_ref.shape
+            # print(abs(im_this - im_this_ref).max())
+            assert np.allclose(im_this, im_this_ref)
+
+
 if __name__ == '__main__':
     test_dim_conv_v1_filter_definitions()
     test_circular_grating_and_process_image()
+    test_image_contextual_surround()
