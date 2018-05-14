@@ -113,8 +113,46 @@ def test_image_cross_ori_sine_and_square_grating():
                 assert np.allclose(im_this_ref_1, im_this_ref_2)
 
 
+def test_v1_surround_suppression_orient_images():
+    ref_mat = loadmat(os.path.join(dir_dictionary['reference_V1_ResponseProperties'],
+                                   'test_V1_surround_suppression_orient_images.mat'))
+
+    grating_wavel = 6
+    phase = 0
+
+    contrast_hi = 0.5
+    context_angles = np.linspace(-90, 90, num=9, endpoint=True)
+
+    maxdiam = 24
+    patch_diam = 7
+    for j in range(2):
+        for i, ca in enumerate(context_angles):
+            if j == 0:
+                im_this_inner = io.image_contextual_surround(patch_diam, 0, patch_diam, grating_wavel,
+                                                             grating_wavel, ca, phase, phase,
+                                                             contrast_hi, contrast_hi)
+            else:
+                assert j == 1
+                im_this_inner = io.image_circular_grating(patch_diam, patch_diam, grating_wavel, ca, phase,
+                                                          contrast_hi)
+
+            # %pad image so that they are the same size regardless of patch diameter
+            # Yimeng: I use the way in my previous work. Not sure if equivalent to his.
+            assert im_this_inner.shape == (im_this_inner.shape[0], im_this_inner.shape[0])
+            diam_im_this_inner = im_this_inner.shape[0]
+            im_this = np.full((maxdiam * 3, maxdiam * 3), fill_value=0.5, dtype=np.float64)
+            box_t = int(np.floor((maxdiam * 3 - diam_im_this_inner) / 2.0))
+            im_this[box_t:box_t + diam_im_this_inner, box_t:box_t + diam_im_this_inner] = im_this_inner
+
+            im_this_ref = ref_mat['I_all'][j, i]
+            assert im_this.shape == im_this_ref.shape
+            print(abs(im_this - im_this_ref).max())
+            # assert np.allclose(im_this, im_this_ref)
+
+
 if __name__ == '__main__':
     test_dim_conv_v1_filter_definitions()
     test_circular_grating_and_process_image()
     test_image_contextual_surround()
     test_image_cross_ori_sine_and_square_grating()
+    test_v1_surround_suppression_orient_images()
