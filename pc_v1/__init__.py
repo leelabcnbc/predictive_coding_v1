@@ -13,4 +13,5 @@ assert os.path.isabs(root_dir)
 dir_dictionary = {
     'root': root_dir,
     'reference_V1_ResponseProperties': os.path.join(root_dir, 'reference', 'V1_ResponseProperties_debug'),
+    'reference_V1_SuppressionMechanisms': os.path.join(root_dir, 'reference', 'V1_SuppressionMechanisms_debug'),
 }

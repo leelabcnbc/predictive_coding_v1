@@ -200,6 +200,42 @@ def image_contextual_surround(csize, vsize, ssize, cwavel, swavel, angle, cphase
     return im
 
 
+def image_centre_surround(csize, vsize, ssize, cwavel, swavel, cangle, sangle, cphase, sphase, contc, conts):
+    """implements image_centre_surround.m from V1_SuppresionMechanisms"""
+    # one limitation of this function is that it can only output zero degree oriented gratings in the center.
+    #
+    #
+    cfreq = 2 * np.pi / cwavel
+    sfreq = 2 * np.pi / swavel
+    cangle = -cangle * np.pi / 180
+    sangle = -sangle * np.pi / 180
+    cphase = cphase * np.pi / 180
+    sphase = sphase * np.pi / 180
+
+    sz = int(np.fix(csize + +2 * vsize + 2 * ssize))
+    if sz % 2 == 0:
+        sz += 1
+
+    im_rad = sz // 2
+    x, y = np.meshgrid(np.arange(-im_rad, im_rad + 1), np.arange(-im_rad, im_rad + 1))
+
+    err = 0
+    yc = -x * np.sin(cangle + err) + y * np.cos(cangle + err)
+    yr = -x * np.sin(sangle + err) + y * np.cos(sangle + err)
+
+    center = 0.5 + 0.5 * contc * np.cos(cfreq * yc + cphase)
+    surround = 0.5 + 0.5 * conts * np.cos(sfreq * yr + sphase)
+
+    radius = np.sqrt(x ** 2 + y ** 2)
+
+    im = surround
+    im[radius < vsize + csize / 2] = 0.5
+    im[radius < csize / 2] = center[radius < csize / 2]
+    im[radius > ssize + vsize + csize / 2] = 0.5
+
+    return im
+
+
 def dim_conv_v1_filter_definitions():
     """implements dim_conv_V1_filter_definitions.m from V1_ResponseProperties"""
     wavel = 6

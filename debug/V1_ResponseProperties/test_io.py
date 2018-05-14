@@ -146,8 +146,8 @@ def test_v1_surround_suppression_orient_images():
 
             im_this_ref = ref_mat['I_all'][j, i]
             assert im_this.shape == im_this_ref.shape
-            print(abs(im_this - im_this_ref).max())
-            # assert np.allclose(im_this, im_this_ref)
+            # print(abs(im_this - im_this_ref).max())
+            assert np.allclose(im_this, im_this_ref)
 
 
 if __name__ == '__main__':
