@@ -105,6 +105,66 @@ def image_circular_grating(csize, vsize, wavel, angle, phase, cont):
     return im
 
 
+def image_square_grating(csize, vsize, wavel, angle, phase, cont):
+    """implements image_square_grating.m from V1_ResponseProperties"""
+
+    freq = 2 * np.pi / wavel
+    angle = -angle * np.pi / 180
+    phase = phase * np.pi / 180
+    #
+    # %define image size
+    sz = int(np.fix(csize + 2 * vsize))
+    if sz % 2 == 0:
+        sz += 1
+
+    # define mesh on which to draw sinusoids
+    im_rad = sz // 2
+    x, y = np.meshgrid(np.arange(-im_rad, im_rad + 1), np.arange(-im_rad, im_rad + 1))
+
+    yg = -x * np.sin(angle) + y * np.cos(angle)
+    #
+    # %make sinusoids with values ranging from 0 to 1 (i.e. contrast is positive)
+    grating = 0.5 + 0.5 * cont * np.cos(freq * yg + phase)
+    #
+    # %define radius from centre point
+    radius = np.maximum(abs(x), abs(y))
+    #
+    # %put togeter image from components
+    im = np.full((sz, sz), fill_value=0.5, dtype=np.float64)
+    im[radius < csize / 2] = grating[radius < csize / 2]
+
+    return im
+
+
+def image_cross_orientation_sine(sz, wavelc, wavelm, angle, diff, phasec, phasem, contc, contm):
+    """implements image_cross_orientation_sine.m from V1_ResponseProperties"""
+    freqc = 2 * np.pi / wavelc
+    freqm = 2 * np.pi / wavelm
+    angle = -angle * np.pi / 180
+    diff = -diff * np.pi / 180
+    phasec = phasec * np.pi / 180
+    phasem = phasem * np.pi / 180
+
+    if sz % 2 == 0:
+        sz += 1
+
+    im_rad = sz // 2
+    x, y = np.meshgrid(np.arange(-im_rad, im_rad + 1), np.arange(-im_rad, im_rad + 1))
+
+    yr = -x * np.sin(angle) + y * np.cos(angle)
+    yc = -x * np.sin(angle + diff) + y * np.cos(angle + diff)
+
+    # these two have ranges [-contc, contc] and [-contm, contm], respectively.
+    grating = contc * np.cos(freqc * yr + phasec)
+    cross = contm * np.cos(freqm * yc + phasem)
+
+    im = grating + cross
+    # as long as contc and contm are both in [0, 0.5], the result should be within [0,1] as well.
+    im = 0.5 + 0.5 * im
+
+    return im
+
+
 def image_contextual_surround(csize, vsize, ssize, cwavel, swavel, angle, cphase, sphase, contc, conts):
     """implements image_contextual_surround.m from V1_ResponseProperties"""
     # one limitation of this function is that it can only output zero degree oriented gratings in the center.

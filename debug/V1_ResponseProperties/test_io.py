@@ -77,7 +77,44 @@ def test_image_contextual_surround():
             assert np.allclose(im_this, im_this_ref)
 
 
+def test_image_cross_ori_sine_and_square_grating():
+    ref_mat = loadmat(os.path.join(dir_dictionary['reference_V1_ResponseProperties'],
+                                   'test_image_cross_ori_sine_and_square_grating.mat'))
+
+    grating_wavel = 6
+    patch_diam = 51
+
+    contrast = 0.5
+    phase = 0
+
+    grating_angles = np.arange(-60, 61, 20)
+
+    for j in range(2):
+        for i, angle in enumerate(grating_angles):
+            if j == 0:
+                im_this = io.image_cross_orientation_sine(patch_diam, grating_wavel, grating_wavel,
+                                                          0, angle, phase, phase, contrast, contrast)
+            else:
+                assert j == 1
+                im_this = io.image_square_grating(patch_diam, 0, grating_wavel, angle,
+                                                  phase, contrast * 2)
+
+            im_this_ref = ref_mat['I_all'][j, i]
+            assert im_this.shape == im_this_ref.shape
+            # print(abs(im_this - im_this_ref).max())
+            assert np.allclose(im_this, im_this_ref)
+            # also, I want to know, when angle is zero, whether two cases match.
+
+            if angle == 0:
+                im_this_ref_1 = ref_mat['I_all'][0, i]
+                im_this_ref_2 = ref_mat['I_all'][1, i]
+                assert im_this_ref_1.shape == im_this_ref_2.shape
+                # print(abs(im_this_ref_1 - im_this_ref_2).max())
+                assert np.allclose(im_this_ref_1, im_this_ref_2)
+
+
 if __name__ == '__main__':
     test_dim_conv_v1_filter_definitions()
     test_circular_grating_and_process_image()
     test_image_contextual_surround()
+    test_image_cross_ori_sine_and_square_grating()
