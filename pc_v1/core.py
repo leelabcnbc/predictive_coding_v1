@@ -22,7 +22,7 @@ def dim_conv(w_ff_on: np.ndarray, w_ff_off: np.ndarray,
         epsilon2 = 100 * epsilon1 * psi
 
     # check shape
-    dim_conv_check_shape(w_ff_on, w_ff_off, x_on, x_off)
+    x_on, x_off = dim_conv_check_shape(w_ff_on, w_ff_off, x_on, x_off, iterations)
     # normalize
     (w_ff_on_normed, w_ff_off_normed), (w_fb_on, w_fb_off) = dim_conv_normalize_weights(w_ff_on, w_ff_off, psi)
 
@@ -51,8 +51,8 @@ def dim_conv(w_ff_on: np.ndarray, w_ff_off: np.ndarray,
             )
         ]), axis=0)
 
-        e_on = x_on / (epsilon2 + r_on)
-        e_off = x_off / (epsilon2 + r_off)
+        e_on = x_on[it] / (epsilon2 + r_on)
+        e_off = x_off[it] / (epsilon2 + r_off)
 
         # update outputs.
         y = np.asarray([
@@ -72,11 +72,15 @@ def dim_conv(w_ff_on: np.ndarray, w_ff_off: np.ndarray,
         return np.asarray(y_all)
 
 
-def dim_conv_check_shape(w_ff_on, w_ff_off, x_on, x_off):
+def dim_conv_check_shape(w_ff_on, w_ff_off, x_on, x_off, iterations):
     assert w_ff_on.shape == w_ff_off.shape and w_ff_on.ndim == 3
     assert x_on.shape == x_off.shape
     # right now, let's focus on static image case.
-    assert x_on.ndim == 2
+    if x_on.ndim == 2:
+        x_on = np.broadcast_to(x_on, (iterations,) + x_on.shape)
+        x_off = np.broadcast_to(x_off, (iterations,) + x_off.shape)
+    assert x_on.shape == x_off.shape and x_on.ndim == 3 and x_on.shape[0] == iterations
+    return x_on, x_off
 
 
 def dim_conv_normalize_weights(w_ff_on: np.ndarray, w_ff_off: np.ndarray, psi: np.float,
