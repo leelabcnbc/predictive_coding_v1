@@ -55,7 +55,7 @@ def gabor(sigma, orient, wavel, phase, aspect, pxsize=None):
     return gb
 
 
-def preprocess_image(im):
+def preprocess_image(im, gain=None, nonlinear=True):
     """implements preprocess_image.m from V1_ResponseProperties"""
     # I think this image should be within the range of 0-1
     assert im.ndim == 2 and np.all(im <= 1) and np.all(im >= 0)
@@ -66,8 +66,13 @@ def preprocess_image(im):
     tmp[tmp < 0] = 0
     log_f = log_f / tmp.sum()
 
+    if gain is None:
+        gain = 2 * np.pi
+
     x = convolve2d(im, log_f, mode='same')
-    x = np.tanh(2 * np.pi * x)
+    x = gain * x
+    if nonlinear:
+        x = np.tanh(x)
     # split
     x_on = np.maximum(x, 0)
     x_off = np.maximum(-x, 0)

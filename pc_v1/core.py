@@ -4,7 +4,8 @@ from scipy.signal import convolve, correlate
 
 def dim_conv(w_ff_on: np.ndarray, w_ff_off: np.ndarray,
              x_on: np.ndarray, x_off: np.ndarray, iterations=50,
-             psi=5000, epsilon1=1e-4, epsilon2=None, verbose=True, return_y_only=True):
+             psi=5000, epsilon1=1e-4, epsilon2=None, verbose=True, return_y_only=True,
+             linear=False):
     """ implements dim_conv_on_and_off.m from V1_ResponseProperties
 
     :param w_ff_on:
@@ -39,20 +40,26 @@ def dim_conv(w_ff_on: np.ndarray, w_ff_off: np.ndarray,
 
         # update error units.
         # let's do convolution.
-        r_on = np.sum(np.asarray([
-            convolve(y_this, w_this, mode='same') for (y_this, w_this) in zip(
-                y, w_fb_on
-            )
-        ]), axis=0)
+        if not linear:
+            r_on = np.sum(np.asarray([
+                convolve(y_this, w_this, mode='same') for (y_this, w_this) in zip(
+                    y, w_fb_on
+                )
+            ]), axis=0)
 
-        r_off = np.sum(np.asarray([
-            convolve(y_this, w_this, mode='same') for (y_this, w_this) in zip(
-                y, w_fb_off
-            )
-        ]), axis=0)
+            r_off = np.sum(np.asarray([
+                convolve(y_this, w_this, mode='same') for (y_this, w_this) in zip(
+                    y, w_fb_off
+                )
+            ]), axis=0)
 
-        e_on = x_on[it] / (epsilon2 + r_on)
-        e_off = x_off[it] / (epsilon2 + r_off)
+            e_on = x_on[it] / (epsilon2 + r_on)
+            e_off = x_off[it] / (epsilon2 + r_off)
+        else:
+            e_on = x_on[it]
+            e_off = x_off[it]
+            # always set y to 0
+            y = np.zeros_like(y)
 
         # update outputs.
         y = np.asarray([
